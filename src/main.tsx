@@ -6,6 +6,8 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {AuthProvider} from "./features/auth/AuthContext.tsx";
 import {router} from "./router";
 
+document.documentElement.classList.add('dark');
+
 const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
