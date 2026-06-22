@@ -8,8 +8,8 @@ import {login} from "@/api/auth.ts";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card.tsx";
 import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {Input} from "@/components/ui/input.tsx";
-import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {Loader2, LogIn} from "lucide-react";
 
 const schema = z.object({
     email: z.string().email('invalid email'),
@@ -27,13 +27,21 @@ export function LoginPage() {
         defaultValues: {email: '', password: ''}
     });
 
-    const {mutate, isPending, error} = useMutation({
+    const {mutate, isPending} = useMutation({
         mutationFn: login,
         onSuccess: (tokens) => {
             signIn(tokens);
             navigate('/dashboard');
         },
+        onError: (error) => {
+            console.error('Login failed:', error);
+            form.setError('root', {message: 'Invalid email or password. Please try again.'})
+        }
     })
+
+    function onSubmit(values: formData) {
+        mutate(values);
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -46,7 +54,7 @@ export function LoginPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit((data) => mutate(data))} className="space-y-3">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                             <FormField
                                 control={form.control}
                                 name="email"
@@ -54,11 +62,7 @@ export function LoginPage() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="email"
-                                                placeholder="seu@email.com"
-                                                {...field}
-                                            />
+                                            <Input type="email" placeholder="name@example.com"{...field}/>
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>
@@ -72,25 +76,22 @@ export function LoginPage() {
                                     <FormItem>
                                         <FormLabel>Password</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="password" {...field}
-                                            />
+                                            <Input type="password" placeholder="••••••••" {...field}/>
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>
                                 )}
                             />
 
-                            {error && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>
-                                        Email or password is incorrect.
-                                    </AlertDescription>
-                                </Alert>
+                            {form.formState.errors.root && (
+                                <p className="text-sm font-medium text-destructive text-center">
+                                    {form.formState.errors.root.message}
+                                </p>
                             )}
 
-                            <Button type="submit" className="w-full" disabled={isPending}>
-                                {isPending ? 'Logging in...' : 'Log-in'}
+                            <Button type="submit" className="w-full gap-2" disabled={isPending}>
+                                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
+                                Sign In
                             </Button>
                         </form>
                     </Form>

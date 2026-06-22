@@ -13,7 +13,7 @@ export interface RegisterRequest {
     name: string;
     email: string;
     password: string;
-    confirmPassword: string;
+    confirmPassword?: string;
 }
 
 export type AuthUser = {

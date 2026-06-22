@@ -8,8 +8,8 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {Form} from "@/components/ui/form.tsx";
 import {FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form.tsx";
 import {Input} from "@/components/ui/input.tsx";
-import {Alert, AlertDescription} from "@/components/ui/alert.tsx";
 import {Button} from "@/components/ui/button.tsx";
+import {Loader2, UserPlus} from "lucide-react";
 
 const schema = z.object({
     name: z.string().min(1, 'name is required').max(200),
@@ -42,10 +42,20 @@ export function RegisterPage() {
         }
     })
 
-    const {mutate, isPending, error} = useMutation({
+    const {mutate, isPending} = useMutation({
         mutationFn: registerUser,
         onSuccess: () => navigate('/login'),
+        onError: (error) => {
+            console.error('Registration failed:', error);
+            form.setError('root', {message: 'Registration failed. Please try again.'})
+        }
     })
+
+    function onSubmit(values: formData) {
+        // Removemos o confirmPassword antes de enviar para a API
+        const { confirmPassword: _, ...apiData } = values;
+        mutate(apiData);
+    }
 
     return (
         <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -58,15 +68,15 @@ export function RegisterPage() {
                 </CardHeader>
                 <CardContent>
                     <Form {...form}>
-                        <form onSubmit={form.handleSubmit((data) => mutate(data))} className="space-y-3">
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                             <FormField
                                 control={form.control}
                                 name="name"
                                 render={({field}) => (
                                     <FormItem>
-                                        <FormLabel>Name</FormLabel>
+                                        <FormLabel>Full Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Your name" {...field}/>
+                                            <Input placeholder="John Doe" {...field}/>
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>
@@ -80,7 +90,7 @@ export function RegisterPage() {
                                     <FormItem>
                                         <FormLabel>Email</FormLabel>
                                         <FormControl>
-                                            <Input type="email" placeholder="your@email.com"
+                                            <Input type="email" placeholder="name@example.com"
                                                    {...field}/>
                                         </FormControl>
                                         <FormMessage/>
@@ -95,7 +105,7 @@ export function RegisterPage() {
                                     <FormItem>
                                         <FormLabel>Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" {...field} />
+                                            <Input placeholder="••••••••" type="password" {...field} />
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>
@@ -109,23 +119,22 @@ export function RegisterPage() {
                                     <FormItem>
                                         <FormLabel>Confirm Password</FormLabel>
                                         <FormControl>
-                                            <Input type="password" {...field} />
+                                            <Input placeholder="••••••••" type="password" {...field} />
                                         </FormControl>
                                         <FormMessage/>
                                     </FormItem>
                                 )}
                             />
 
-                            {error && (
-                                <Alert variant="destructive">
-                                    <AlertDescription>
-                                        Error creating account. Please try again.
-                                    </AlertDescription>
-                                </Alert>
+                            {form.formState.errors.root && (
+                                <p className="text-sm font-medium text-destructive text-center">
+                                    {form.formState.errors.root.message}
+                                </p>
                             )}
 
-                            <Button type="submit" className="w-full" disabled={isPending}>
-                                {isPending ? 'Creating account...' : 'Create Account'}
+                            <Button type="submit" className="w-full gap-2" disabled={isPending}>
+                                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+                                Register
                             </Button>
                         </form>
                     </Form>

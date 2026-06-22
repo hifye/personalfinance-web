@@ -1,7 +1,7 @@
-﻿import type {AuthUser, TokenResponse} from "../../types/auth.ts";
+﻿import type {AuthUser, TokenResponse} from "@/@types/auth.ts";
 import {createContext, type ReactNode, useCallback, useContext, useState} from "react";
 import {jwtDecode} from "jwt-decode";
-import {clearTokens} from "../../api/client.ts";
+import {clearTokens} from "@/api/client.ts";
 
 interface JwtPayload {
     sub: string;
