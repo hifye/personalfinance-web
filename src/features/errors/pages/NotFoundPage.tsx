@@ -1,6 +1,6 @@
 ﻿import {useNavigate} from "react-router-dom";
 import {Button} from "@/components/ui/button.tsx";
-import {ArrowLeft, Home} from "lucide-react";
+import {ArrowLeft} from "lucide-react";
 
 export function NotFoundPage() {
     const navigate = useNavigate();
@@ -15,9 +15,6 @@ export function NotFoundPage() {
             <div className="flex flex-col sm:flex-row gap-3">
                 <Button variant="outline" onClick={() => navigate(-1)} className="gap-2">
                     <ArrowLeft className="h-4 w-4" /> Go back
-                </Button>
-                <Button onClick={() => navigate('/dashboard')} className="gap-2">
-                    <Home className="h-4 w-4" /> Dashboard
                 </Button>
             </div>
         </div>

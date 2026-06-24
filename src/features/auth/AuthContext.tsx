@@ -1,13 +1,18 @@
-﻿import type {AuthUser, TokenResponse} from "@/@types/auth.ts";
+import type {AuthUser, TokenResponse} from "@/@types/auth.ts";
 import {createContext, type ReactNode, useCallback, useContext, useState} from "react";
 import {jwtDecode} from "jwt-decode";
 import {clearTokens} from "@/api/client.ts";
 
 interface JwtPayload {
-    sub: string;
-    email: string;
-    unique_name: string;
-    exp: number;
+    sub?: string;
+    nameid?: string;
+    email?: string;
+    unique_name?: string;
+    name?: string;
+    exp?: number;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"?: string;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"?: string;
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"?: string;
 }
 
 interface AuthContextType {
@@ -22,11 +27,28 @@ const AuthContext = createContext<AuthContextType | null>(null);
 function getUserFromToken(token: string): AuthUser | null {
     try {
         const payload = jwtDecode<JwtPayload>(token);
-        return {
-            userId: payload.sub,
-            email: payload.email,
-            name: payload.unique_name
-        };
+
+        if (payload.exp && payload.exp * 1000 <= Date.now()) {
+            return null;
+        }
+
+        const userId =
+            payload.sub ??
+            payload.nameid ??
+            payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"];
+        const email =
+            payload.email ??
+            payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"];
+        const name =
+            payload.unique_name ??
+            payload.name ??
+            payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"];
+
+        if (!userId || !email || !name) {
+            return null;
+        }
+
+        return {userId, email, name};
     } catch {
         return null;
     }
@@ -40,9 +62,9 @@ export function AuthProvider({children}: { children: ReactNode }) {
     });
 
     const signIn = useCallback((token: TokenResponse) => {
-        localStorage.setItem('access_token', token.access_token);
-        localStorage.setItem('refresh_token', token.refresh_token);
-        setUser(getUserFromToken(token.access_token));
+        localStorage.setItem('access_token', token.accessToken);
+        localStorage.setItem('refresh_token', token.refreshToken);
+        setUser(getUserFromToken(token.accessToken));
     }, []);
 
     const signOut = useCallback(() => {

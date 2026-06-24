@@ -39,7 +39,6 @@ export function DashboardPage() {
     const getAccountsList = (): AccountListItem[] => {
         if (Array.isArray(accountsRaw)) return accountsRaw;
 
-        // Aplicamos a mesma técnica de 'as unknown' aqui
         const result = accountsRaw as unknown as ApiResult<AccountListItem[]>;
         if (result?.value && Array.isArray(result.value)) return result.value;
 
@@ -128,7 +127,7 @@ export function DashboardPage() {
                             </div>
                         ) : accountsList.length > 0 ? (
                             accountsList.map((account) => (
-                                <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-slate-50 transition-colors">
+                                <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg transition-colors">
                                     <div className="flex items-center gap-3">
                                         <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center text-primary font-bold">
                                             {account.name ? account.name[0].toUpperCase() : 'A'}

@@ -1,6 +1,6 @@
-﻿export interface TokenResponse {
-    access_token: string;
-    refresh_token: string;
+export interface TokenResponse {
+    accessToken: string;
+    refreshToken: string;
     refreshTokenExpiresAt: string;
 }
 
@@ -13,7 +13,7 @@ export interface RegisterRequest {
     name: string;
     email: string;
     password: string;
-    confirmPassword?: string;
+    confirmPassword: string;
 }
 
 export type AuthUser = {

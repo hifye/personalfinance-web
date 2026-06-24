@@ -44,7 +44,12 @@ export function RegisterPage() {
 
     const {mutate, isPending} = useMutation({
         mutationFn: registerUser,
-        onSuccess: () => navigate('/login'),
+        onSuccess: () => navigate('/login', {
+            state: {
+                accountCreated: true,
+                email: form.getValues('email')
+            }
+        }),
         onError: (error) => {
             console.error('Registration failed:', error);
             form.setError('root', {message: 'Registration failed. Please try again.'})
@@ -52,9 +57,7 @@ export function RegisterPage() {
     })
 
     function onSubmit(values: formData) {
-        // Removemos o confirmPassword antes de enviar para a API
-        const { confirmPassword: _, ...apiData } = values;
-        mutate(apiData);
+        mutate(values);
     }
 
     return (
@@ -63,7 +66,7 @@ export function RegisterPage() {
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-xl">Create Account</CardTitle>
                     <CardDescription className="text-sm">
-                        Sign-up
+                        Create your account to access all features.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
