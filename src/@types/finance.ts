@@ -4,7 +4,7 @@ export const TransactionType = {
     Expense: 2,
 } as const;
 
-export type TransactionType = typeof TransactionType[keyof typeof TransactionType];
+export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
 
 export const RecurringFrequency = {
     None: 0,
@@ -14,7 +14,7 @@ export const RecurringFrequency = {
     Yearly: 4,
 } as const;
 
-export type RecurringFrequency = typeof RecurringFrequency[keyof typeof RecurringFrequency];
+export type RecurringFrequency = (typeof RecurringFrequency)[keyof typeof RecurringFrequency]
 
 export interface TransactionSummary {
     totalIncome: number;
