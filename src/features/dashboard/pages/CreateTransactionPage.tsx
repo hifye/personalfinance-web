@@ -8,7 +8,7 @@ import {
 import {CatalogType} from "@/@types/catalog.ts";
 import {useNavigate} from "react-router-dom";
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import {useMemo, useState} from "react";
+import {useEffect, useMemo, useState} from "react";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {ArrowLeft, Loader2, PlusCircle, ReceiptText} from "lucide-react";
@@ -91,6 +91,11 @@ export function CreateTransactionPage() {
     const queryClient = useQueryClient();
     const [showNewCategoryForm, setShowNewCategoryForm] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
+    const [pendingCategorySelection, setPendingCategorySelection] = useState<{
+        id: string | undefined;
+        name: string;
+        type: CatalogType;
+    } | null>(null);
 
     const form = useForm<TransactionFormValues>({
         resolver: zodResolver(transactionSchema),
@@ -123,6 +128,24 @@ export function CreateTransactionPage() {
         return categories.filter((category) => category.type === catalogType);
     }, [categories, selectedType]);
 
+    // A newly created category can only be selected once its <SelectItem> is
+    // rendered; otherwise the Select resets the value. Wait for it to appear.
+    useEffect(() => {
+        if (!pendingCategorySelection) {
+            return;
+        }
+
+        const {id, name, type} = pendingCategorySelection;
+        const match = categories.find((category) =>
+            id ? category.id === id : category.type === type && category.name === name,
+        );
+
+        if (match) {
+            form.setValue("categoryId", match.id, {shouldValidate: true});
+            setPendingCategorySelection(null);
+        }
+    }, [categories, pendingCategorySelection, form]);
+
     const {mutate: createCategory, isPending: isCreatingCategory} = useMutation({
         mutationFn: async () => {
             const name = newCategoryName.trim();
@@ -138,23 +161,7 @@ export function CreateTransactionPage() {
         },
         onSuccess: async ({createdId, name, type}) => {
             await queryClient.invalidateQueries({queryKey: ["categories"]});
-
-            let categoryId = createdId;
-
-            if (!categoryId) {
-                const latestCategories = await queryClient.fetchQuery({
-                    queryKey: ["categories"],
-                    queryFn: () => catalogApi.getCategories(),
-                });
-                categoryId = latestCategories.find(
-                    (category) => category.type === type && category.name === name,
-                )?.id;
-            }
-
-            if (categoryId) {
-                form.setValue("categoryId", categoryId, {shouldValidate: true});
-            }
-
+            setPendingCategorySelection({id: createdId, name, type});
             setShowNewCategoryForm(false);
             setNewCategoryName("");
         },
