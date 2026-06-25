@@ -17,9 +17,19 @@ function unwrapValue<T>(data: MaybeApiResult<T>): T {
 }
 
 export const catalogApi = {
-    createCategory: async (data: CreateCategoryRequest): Promise<string> => {
-        const {data: response} = await api.post<MaybeApiResult<string>>("catalog/create-category", data);
-        return unwrapValue(response);
+    createCategory: async (data: CreateCategoryRequest): Promise<string | undefined> => {
+        const {data: response} = await api.post<MaybeApiResult<string | Category>>("catalog/create-category", data);
+        const value = unwrapValue(response);
+
+        if (typeof value === "string") {
+            return value.length > 0 ? value : undefined;
+        }
+
+        if (value && typeof value === "object" && "id" in value) {
+            return value.id;
+        }
+
+        return undefined;
     },
 
     getCategories: async (): Promise<Category[]> => {

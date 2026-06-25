@@ -131,16 +131,32 @@ export function CreateTransactionPage() {
                 throw new Error("Category name is required");
             }
 
-            return catalogApi.createCategory({
-                name,
-                type: selectedType === TransactionType.Income ? CatalogType.Income : CatalogType.Expense,
-            });
+            const type = selectedType === TransactionType.Income ? CatalogType.Income : CatalogType.Expense;
+            const createdId = await catalogApi.createCategory({name, type});
+
+            return {createdId, name, type};
         },
-        onSuccess: (categoryId) => {
-            form.setValue("categoryId", categoryId, {shouldValidate: true});
+        onSuccess: async ({createdId, name, type}) => {
+            await queryClient.invalidateQueries({queryKey: ["categories"]});
+
+            let categoryId = createdId;
+
+            if (!categoryId) {
+                const latestCategories = await queryClient.fetchQuery({
+                    queryKey: ["categories"],
+                    queryFn: () => catalogApi.getCategories(),
+                });
+                categoryId = latestCategories.find(
+                    (category) => category.type === type && category.name === name,
+                )?.id;
+            }
+
+            if (categoryId) {
+                form.setValue("categoryId", categoryId, {shouldValidate: true});
+            }
+
             setShowNewCategoryForm(false);
             setNewCategoryName("");
-            queryClient.invalidateQueries({queryKey: ["categories"]});
         },
         onError: (error) => {
             console.error("Error creating category:", error);
